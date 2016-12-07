@@ -3,24 +3,13 @@ using UnityEngine.UI;
 using System.Collections;
 
 // this script allow to place new object in the scene. It also allow to move and rotate existing objects.
-public class ObjectModifyer {
+public class PlacementModeBehaviour {
 
 
 
 	private GameObject mainCamera;
 
-	// ----- highlight targeted object -----
 
-
-
-	private GameObject lastTargetedObject;
-	private Material lastTargetedMaterial;
-	private Material highlightedMaterial;
-
-	private Button removeButton;
-
-
-	// ----- placement -----
 
 	private Button validatePlacementButton;
 
@@ -39,49 +28,11 @@ public class ObjectModifyer {
 
 
 
-	public ObjectModifyer(GameObject mainCamera, Button validatePlacementButton, Material highlightedMaterial, Button removeButton){
+	public PlacementModeBehaviour(GameObject mainCamera, Button validatePlacementButton){
 		this.mainCamera = mainCamera;
 		this.validatePlacementButton = validatePlacementButton;
-		this.highlightedMaterial = highlightedMaterial;
-		this.removeButton = removeButton;
 	}
 
-	public void HighlightTargetedObject(){
-		RaycastHit hit;
-		Ray ray = new Ray (mainCamera.transform.position, mainCamera.transform.forward);
-
-		// we want to intersect anything but the Ground layer (the 10th layer)
-		int layerMask = 1 << 10; // layerMask = 0000001000000000 in base 2
-		layerMask = ~layerMask; // layerMask = 1111110111111111 in base 2
-
-		// if the main camera if oriented in front of something
-		if (Physics.Raycast (ray, out hit, maxRange, layerMask)) {
-
-			if (lastTargetedObject == null) {
-				lastTargetedObject = hit.transform.gameObject;
-				lastTargetedMaterial = lastTargetedObject.GetComponent<Renderer> ().material;
-				lastTargetedObject.GetComponent<Renderer> ().material = highlightedMaterial;
-
-				removeButton.interactable = true;
-			}
-
-		}else{
-			if (lastTargetedObject != null) {
-				lastTargetedObject.GetComponent<Renderer> ().material = lastTargetedMaterial;
-				lastTargetedObject = null;
-
-				removeButton.interactable = false;
-			}
-		}
-	}
-
-	public void removeTargetedObject(){
-		if (lastTargetedObject != null) {
-			Object.Destroy (lastTargetedObject);
-			lastTargetedObject = null;
-			removeButton.interactable = false;
-		}
-	}
 
 	public void PlacingObjectFrame(){
 

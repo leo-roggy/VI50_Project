@@ -10,28 +10,39 @@ public class Controller : MonoBehaviour {
 
 	public Button removeObjectButton;
 
-	public Material highlightedMaterial;
+	public GameObject silhouettePrefab;
 
-	private ObjectModifyer objectModifyer;
 
-	enum UserMode {normal, placingObject, inMenu}; 
+	private PlacementModeBehaviour placementModeBehaviour;
+	private NormalModeBehaviour normalModeBehaviour;
+
+	enum UserMode {normal, placingObject, movingObject, rotatingObject, inMenu}; 
 	private UserMode userMode = UserMode.normal;
 
 	void Start(){
-		objectModifyer = new ObjectModifyer (mainCamera, validatePlacementButton, highlightedMaterial, removeObjectButton);
+		placementModeBehaviour = new PlacementModeBehaviour (mainCamera, validatePlacementButton);
+		normalModeBehaviour = new NormalModeBehaviour (mainCamera, silhouettePrefab, removeObjectButton);
 	}
 
 	void FixedUpdate(){
-		Debug.Log (userMode);
+//		Debug.Log (userMode);
 		switch (userMode) {
 		case UserMode.normal:
-			objectModifyer.HighlightTargetedObject ();
+			normalModeBehaviour.HighlightTargetedObjectFrame ();
 			break;
 		case UserMode.placingObject:
-			objectModifyer.PlacingObjectFrame ();
+			placementModeBehaviour.PlacingObjectFrame ();
+			break;
+		case UserMode.movingObject:
+			normalModeBehaviour.unhighlightTargetedObject ();
+
+			break;
+		case UserMode.rotatingObject:
+			normalModeBehaviour.unhighlightTargetedObject ();
+
 			break;
 		case UserMode.inMenu:
-			// DO NOTHING
+			normalModeBehaviour.unhighlightTargetedObject ();
 			break;
 		}
 
@@ -45,31 +56,31 @@ public class Controller : MonoBehaviour {
 	}
 
 	public void setSelectedModel(GameObject model){
-		this.objectModifyer.setSelectedModel (model);
+		this.placementModeBehaviour.setSelectedModel (model);
 	}
 
 	public void placeObject(){
 		userMode = UserMode.placingObject;
 
-		objectModifyer.instanciateGhost ();
+		placementModeBehaviour.instanciateGhost ();
 	}
 
 	public void validatePlacementObject(){
 		userMode = UserMode.normal;
 
-		objectModifyer.instanciatePrefab ();
-		objectModifyer.destroyGhost ();
+		placementModeBehaviour.instanciatePrefab ();
+		placementModeBehaviour.destroyGhost ();
 
 	}
 
 	public void cancelPlacingObject(){
 		userMode = UserMode.inMenu;
 
-		objectModifyer.destroyGhost ();
+		placementModeBehaviour.destroyGhost ();
 	}
 
 	public void removeTargetedObject(){
-		objectModifyer.removeTargetedObject ();
+		normalModeBehaviour.removeTargetedObject ();
 	}
 
 }
