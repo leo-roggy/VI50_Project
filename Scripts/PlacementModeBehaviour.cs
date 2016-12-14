@@ -28,13 +28,20 @@ public class PlacementModeBehaviour {
 
 
 
-	public PlacementModeBehaviour(GameObject mainCamera, Button validatePlacementButton){
-		this.mainCamera = mainCamera;
+	public PlacementModeBehaviour(Button validatePlacementButton){
 		this.validatePlacementButton = validatePlacementButton;
+	}
+
+	public void setPlayerMainCamera(GameObject mainCamera){
+		this.mainCamera = mainCamera;
 	}
 
 
 	public void PlacingObjectFrame(){
+
+		if (mainCamera == null) {
+			return;
+		}
 
 		RaycastHit hit;
 		Ray ray = new Ray (mainCamera.transform.position, mainCamera.transform.forward);

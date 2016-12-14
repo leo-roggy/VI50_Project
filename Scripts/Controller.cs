@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 using System.Collections;
 
 public class Controller : MonoBehaviour {
 
-	public GameObject mainCamera;
+	private GameObject playerMainCamera;
 
 	public Button validatePlacementButton;
 
@@ -20,12 +21,42 @@ public class Controller : MonoBehaviour {
 	private UserMode userMode = UserMode.normal;
 
 	void Start(){
-		placementModeBehaviour = new PlacementModeBehaviour (mainCamera, validatePlacementButton);
-		normalModeBehaviour = new NormalModeBehaviour (mainCamera, silhouettePrefab, removeObjectButton);
+		playerMainCamera = null;
+		
+		placementModeBehaviour = new PlacementModeBehaviour (validatePlacementButton);
+		normalModeBehaviour = new NormalModeBehaviour (silhouettePrefab, removeObjectButton);
+	}
+
+	private void researchPlayerMainCamera(){
+		GameObject[] cameras = GameObject.FindGameObjectsWithTag ("PlayerCamera");
+
+		GameObject localCamera = null;
+		foreach (GameObject camera in cameras) {
+			if(camera.GetComponent<NetworkIdentity>().isLocalPlayer){
+				localCamera = camera;
+			}
+		}
+
+		if (localCamera == null) {
+			Debug.LogWarning ("Local camera not found");
+//			Invoke ("updatePlayerMainCamera", 1);
+		} else {
+			Debug.Log ("Local camera found");
+			this.playerMainCamera = localCamera;
+			placementModeBehaviour.setPlayerMainCamera (localCamera);
+			normalModeBehaviour.setPlayerMainCamera (localCamera);
+		}
 	}
 
 	void FixedUpdate(){
-//		Debug.Log (userMode);
+
+		if (playerMainCamera == null) {
+			researchPlayerMainCamera ();
+			if (playerMainCamera == null) {
+				return;
+			}
+		}
+
 		switch (userMode) {
 		case UserMode.normal:
 			normalModeBehaviour.HighlightTargetedObjectFrame ();

@@ -19,13 +19,21 @@ public class NormalModeBehaviour {
 
 	private float maxRange = 10f; 
 
-	public NormalModeBehaviour (GameObject mainCamera, GameObject silhouettePrefab, Button removeButton) {
-		this.mainCamera = mainCamera;
+	public NormalModeBehaviour (GameObject silhouettePrefab, Button removeButton) {
 		this.silhouettePrefab = silhouettePrefab;
 		this.removeButton = removeButton;
 	}
 
+	public void setPlayerMainCamera(GameObject mainCamera){
+		this.mainCamera = mainCamera;
+	}
+
 	public void HighlightTargetedObjectFrame(){
+
+		if (mainCamera == null) {
+			return;
+		}
+
 		RaycastHit hit;
 		Ray ray = new Ray (mainCamera.transform.position, mainCamera.transform.forward);
 
