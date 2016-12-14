@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 using System.Collections;
 
 // this script allow to place new object in the scene. It also allow to move and rotate existing objects.
@@ -8,8 +9,6 @@ public class PlacementModeBehaviour {
 
 
 	private GameObject mainCamera;
-
-
 
 	private Button validatePlacementButton;
 
@@ -93,7 +92,9 @@ public class PlacementModeBehaviour {
 	}
 
 	public void instanciatePrefab(){
-		Object.Instantiate (selectedModel, ghost.transform.position, ghost.transform.rotation);
+		GameObject obj =(GameObject)Object.Instantiate (selectedModel, ghost.transform.position, ghost.transform.rotation);
+//		Network.Instantiate (selectedModel, ghost.transform.position, ghost.transform.rotation, 0);
+		NetworkServer.Spawn(obj);
 	}
 
 
