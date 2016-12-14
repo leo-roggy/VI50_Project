@@ -3,11 +3,15 @@ using UnityEngine.UI;
 using System.Collections;
 
 // this script allow to place new object in the scene. It also allow to move and rotate existing objects.
-public class ObjectModifyer {
+public class PlacementModeBehaviour {
+
+
 
 	private GameObject mainCamera;
 
-	public Button validatePlacementButton;
+
+
+	private Button validatePlacementButton;
 
 	private GameObject selectedModel;
 
@@ -22,12 +26,22 @@ public class ObjectModifyer {
 	private float epsilon = 0.0001f;
 
 
-	public ObjectModifyer(GameObject mainCamera, Button validatePlacementButton){
-		this.mainCamera = mainCamera;
+
+
+	public PlacementModeBehaviour(Button validatePlacementButton){
 		this.validatePlacementButton = validatePlacementButton;
 	}
 
+	public void setPlayerMainCamera(GameObject mainCamera){
+		this.mainCamera = mainCamera;
+	}
+
+
 	public void PlacingObjectFrame(){
+
+		if (mainCamera == null) {
+			return;
+		}
 
 		RaycastHit hit;
 		Ray ray = new Ray (mainCamera.transform.position, mainCamera.transform.forward);
@@ -42,7 +56,6 @@ public class ObjectModifyer {
 			if (!targetingSomething) {
 				targetingSomething = true;
 				ghost.SetActive (true);
-				validatePlacementButton.interactable = true;
 			}
 			ghost.transform.position = new Vector3 (hit.point.x, hit.point.y + selectedModel.transform.position.y + epsilon, hit.point.z);
 			// the ghost is always oriented in front of the camera
@@ -50,9 +63,11 @@ public class ObjectModifyer {
 			ghost.transform.RotateAround (ghost.transform.position, Vector3.up, mainCamera.transform.rotation.eulerAngles.y);
 
 			if (ghost.GetComponent<CollidingUpdater> ().isColliding ()) {
-				ghostMaterial.SetColor ("_Color", ghostCollisionColor);
+				ghostMaterial.color = ghostCollisionColor;
+				validatePlacementButton.interactable = false;
 			} else {
-				ghostMaterial.SetColor ("_Color", ghostColor);
+				ghostMaterial.color = ghostColor;
+				validatePlacementButton.interactable = true;
 			}
 
 		} else {

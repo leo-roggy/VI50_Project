@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: 4ec804c1b8b4e6f48bd4f30ecd218921
-timeCreated: 1480879887
+guid: 708715481d2db9c488afdcfcc6af8df6
+timeCreated: 1481652095
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -9,8 +9,7 @@ ModelImporter:
     400000: //RootNode
     2300000: //RootNode
     3300000: //RootNode
-    4300000: Chair
-    4300002: Table
+    4300000: PositionMarker
     7400000: Default Take
     9500000: //RootNode
   materials:

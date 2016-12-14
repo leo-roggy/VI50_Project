@@ -1,50 +1,117 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 using System.Collections;
 
 public class Controller : MonoBehaviour {
 
-	public GameObject mainCamera;
+	private GameObject playerMainCamera;
 
 	public Button validatePlacementButton;
 
-	private ObjectModifyer objectModifyer;
+	public Button removeObjectButton;
 
-	private bool placingObject = false;
+	public GameObject silhouettePrefab;
+
+
+	private PlacementModeBehaviour placementModeBehaviour;
+	private NormalModeBehaviour normalModeBehaviour;
+
+	enum UserMode {normal, placingObject, movingObject, rotatingObject, inMenu}; 
+	private UserMode userMode = UserMode.normal;
 
 	void Start(){
-		objectModifyer = new ObjectModifyer (mainCamera, validatePlacementButton);
+		playerMainCamera = null;
+		
+		placementModeBehaviour = new PlacementModeBehaviour (validatePlacementButton);
+		normalModeBehaviour = new NormalModeBehaviour (silhouettePrefab, removeObjectButton);
 	}
 
-	void FixedUpdate(){
-		
-		if (placingObject) {
-			objectModifyer.PlacingObjectFrame ();
-		} else {
+	private void researchPlayerMainCamera(){
+		GameObject[] cameras = GameObject.FindGameObjectsWithTag ("PlayerCamera");
 
+		GameObject localCamera = null;
+		foreach (GameObject camera in cameras) {
+			if(camera.GetComponent<NetworkIdentity>().isLocalPlayer){
+				localCamera = camera;
+			}
+		}
+
+		if (localCamera == null) {
+			Debug.LogWarning ("Local camera not found");
+//			Invoke ("updatePlayerMainCamera", 1);
+		} else {
+			Debug.Log ("Local camera found");
+			this.playerMainCamera = localCamera;
+			placementModeBehaviour.setPlayerMainCamera (localCamera);
+			normalModeBehaviour.setPlayerMainCamera (localCamera);
 		}
 	}
 
+	void FixedUpdate(){
+
+		if (playerMainCamera == null) {
+			researchPlayerMainCamera ();
+			if (playerMainCamera == null) {
+				return;
+			}
+		}
+
+		switch (userMode) {
+		case UserMode.normal:
+			normalModeBehaviour.HighlightTargetedObjectFrame ();
+			break;
+		case UserMode.placingObject:
+			placementModeBehaviour.PlacingObjectFrame ();
+			break;
+		case UserMode.movingObject:
+			normalModeBehaviour.unhighlightTargetedObject ();
+
+			break;
+		case UserMode.rotatingObject:
+			normalModeBehaviour.unhighlightTargetedObject ();
+
+			break;
+		case UserMode.inMenu:
+			normalModeBehaviour.unhighlightTargetedObject ();
+			break;
+		}
+
+	}
+
+	public void enterInMenu(){
+		userMode = UserMode.inMenu;
+	}
+	public void exitMenu(){
+		userMode = UserMode.normal;
+	}
 
 	public void setSelectedModel(GameObject model){
-		this.objectModifyer.setSelectedModel (model);
+		this.placementModeBehaviour.setSelectedModel (model);
 	}
 
 	public void placeObject(){
-		placingObject = true;
-		objectModifyer.instanciateGhost ();
+		userMode = UserMode.placingObject;
+
+		placementModeBehaviour.instanciateGhost ();
 	}
 
 	public void validatePlacementObject(){
-		placingObject = false;
-		objectModifyer.instanciatePrefab ();
-		objectModifyer.destroyGhost ();
+		userMode = UserMode.normal;
+
+		placementModeBehaviour.instanciatePrefab ();
+		placementModeBehaviour.destroyGhost ();
 
 	}
 
 	public void cancelPlacingObject(){
-		placingObject = false;
-		objectModifyer.destroyGhost ();
+		userMode = UserMode.inMenu;
+
+		placementModeBehaviour.destroyGhost ();
+	}
+
+	public void removeTargetedObject(){
+		normalModeBehaviour.removeTargetedObject ();
 	}
 
 }
