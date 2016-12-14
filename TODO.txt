@@ -1,11 +1,12 @@
-- UI
-- Gestion des déplacement (vérifier si c'est possible quand meme)  : Kalman filter + step detection
-- Création des assets
 - gestion du "mode édition", scene grisé ? objet sélectionnée en surimpression
+- UI
 - implémentation des fonctionnalités : 
 	- Menu de  sélection des assets
 	- déplacement d'un asset déja placé
 	- rotation d'un asset
 	- bouton "plus d'info"
-
+	- suppr
+- Gestion des déplacement (vérifier si c'est possible quand meme)  : Kalman filter + step detection
 - gestion du multi
+
+- Création des assets
