@@ -4,26 +4,14 @@ using UnityEngine.Networking;
 using System.Collections;
 
 // this script allow to place new object in the scene. It also allow to move and rotate existing objects.
-public class PlacementModeBehaviour {
+public class PlacementModeBehaviour : EditingObjectBehaviour {
 
-
-
-	private GameObject mainCamera;
+	private GameObject[] instanciablePrefabs;
 
 	private Button validatePlacementButton;
 
 	private GameObject selectedModel;
-
-	private Material ghostMaterial;
-	private Color ghostColor = new Color (0f, 1f, 0f, 0.3f);
-	private Color ghostCollisionColor = new Color (1f, 0f, 0f, 0.3f);
-	private GameObject ghost;
-
-	private bool targetingSomething;
-	private float maxRange = 10f; 
-
-	private float epsilon = 0.0001f;
-
+	private int selectedId;
 
 
 
@@ -31,19 +19,16 @@ public class PlacementModeBehaviour {
 		this.validatePlacementButton = validatePlacementButton;
 	}
 
-	public void setPlayerMainCamera(GameObject mainCamera){
-		this.mainCamera = mainCamera;
-	}
 
 
 	public void PlacingObjectFrame(){
 
-		if (mainCamera == null) {
+		if (localMainCamera == null) {
 			return;
 		}
 
 		RaycastHit hit;
-		Ray ray = new Ray (mainCamera.transform.position, mainCamera.transform.forward);
+		Ray ray = new Ray (localMainCamera.transform.position, localMainCamera.transform.forward);
 
 		// we want to intersect anything but the gost layer (the 9th layer)
 		int layerMask = 1 << 9; // layerMask = 0000000100000000 in base 2
@@ -59,7 +44,7 @@ public class PlacementModeBehaviour {
 			ghost.transform.position = new Vector3 (hit.point.x, hit.point.y + selectedModel.transform.position.y + epsilon, hit.point.z);
 			// the ghost is always oriented in front of the camera
 			ghost.transform.rotation = selectedModel.transform.rotation;
-			ghost.transform.RotateAround (ghost.transform.position, Vector3.up, mainCamera.transform.rotation.eulerAngles.y);
+			ghost.transform.RotateAround (ghost.transform.position, Vector3.up, localMainCamera.transform.rotation.eulerAngles.y);
 
 			if (ghost.GetComponent<CollidingUpdater> ().isColliding ()) {
 				ghostMaterial.color = ghostCollisionColor;
@@ -79,32 +64,25 @@ public class PlacementModeBehaviour {
 	}
 
 	public void instanciateGhost(){
-		ghost = Object.Instantiate (selectedModel);
-
-		ghostMaterial = ghost.GetComponent<Renderer> ().material;
-		ghostMaterial.color = ghostColor;
-
-		ghost.layer = 9;
-		ghost.AddComponent<CollidingUpdater> ();
+		base.instantiateGhost (selectedModel);
 
 		targetingSomething = false;
 		ghost.SetActive (false);
 	}
 
 	public void instanciatePrefab(){
-		GameObject obj =(GameObject)Object.Instantiate (selectedModel, ghost.transform.position, ghost.transform.rotation);
-//		Network.Instantiate (selectedModel, ghost.transform.position, ghost.transform.rotation, 0);
-		NetworkServer.Spawn(obj);
+		Debug.Log("PlacementModeBehaviour : instanciatePrefab");
+		localMainCamera.GetComponent<LocalPlayerScript> ().CmdInstaciateOnServer(this.selectedId, ghost.transform.position, ghost.transform.rotation);
 	}
 
+	public void setSelectedModel(int id){
+		this.selectedId = id;
 
-	public void destroyGhost(){
-		Object.Destroy (ghost);
-		ghost = null;
+		this.selectedModel = instanciablePrefabs[id];
 	}
 
-	public void setSelectedModel(GameObject model){
-				this.selectedModel = model;
+	public void setInstanciablePrefabs(GameObject[] instanciablePrefabs){
+		this.instanciablePrefabs = instanciablePrefabs;
 	}
 
 }

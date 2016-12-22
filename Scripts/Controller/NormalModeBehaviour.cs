@@ -1,41 +1,43 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 using System.Collections;
 
 public class NormalModeBehaviour {
 
-
-	private GameObject mainCamera;
+	private GameObject localMainCamera;
 
 	private GameObject silhouettePrefab;
 
 	private GameObject silhouetteObject;
 
 	private GameObject lastTargetedObject;
-//	private Material lastTargetedMaterial;
-//	private Material silhouetteMaterial;
 
 	private Button removeButton;
+	private Button moveObjectButton;
+	private Button rotateObjectButton;
 
 	private float maxRange = 10f; 
 
-	public NormalModeBehaviour (GameObject silhouettePrefab, Button removeButton) {
+	public NormalModeBehaviour (GameObject silhouettePrefab, Button removeButton, Button moveObjectButton, Button rotateObjectButton) {
 		this.silhouettePrefab = silhouettePrefab;
 		this.removeButton = removeButton;
+		this.moveObjectButton = moveObjectButton;
+		this.rotateObjectButton = rotateObjectButton;
 	}
 
 	public void setPlayerMainCamera(GameObject mainCamera){
-		this.mainCamera = mainCamera;
+		this.localMainCamera = mainCamera;
 	}
 
 	public void HighlightTargetedObjectFrame(){
 
-		if (mainCamera == null) {
+		if (localMainCamera == null) {
 			return;
 		}
 
 		RaycastHit hit;
-		Ray ray = new Ray (mainCamera.transform.position, mainCamera.transform.forward);
+		Ray ray = new Ray (localMainCamera.transform.position, localMainCamera.transform.forward);
 
 		// we want to intersect anything but the Ground layer (the 10th layer)
 		int layerMask = 1 << 10; // layerMask = 0000001000000000 in base 2
@@ -52,20 +54,15 @@ public class NormalModeBehaviour {
 
 				silhouetteObject = Object.Instantiate (silhouettePrefab) as GameObject;
 
-//				silhouetteObject = new GameObject ();
 				silhouetteObject.transform.position = lastTargetedObject.transform.position;
 				silhouetteObject.transform.rotation = lastTargetedObject.transform.rotation;
 				silhouetteObject.transform.localScale = lastTargetedObject.transform.localScale;
-//				MeshFilter mf = silhouetteObject.AddComponent <MeshFilter>() as MeshFilter;
 				silhouetteObject.GetComponent<MeshFilter> ().mesh = lastTargetedObject.GetComponent<MeshFilter> ().mesh;
-//				MeshRenderer mr = silhouetteObject.AddComponent <MeshRenderer>() as MeshRenderer;
-//				mr.material = silhouetteMaterial;
 
-
-
-//				silhouetteObject.GetComponent<Renderer> ().material = silhouetteMaterial;
 
 				removeButton.interactable = true;
+				moveObjectButton.interactable = true;
+				rotateObjectButton.interactable = true;
 			}
 
 		} else {
@@ -77,21 +74,36 @@ public class NormalModeBehaviour {
 
 	public void unhighlightTargetedObject(){
 		if (silhouetteObject != null) {
-//			Debug.Log("destroy");
 			Object.Destroy(silhouetteObject);
 
 			lastTargetedObject = null;
 			silhouetteObject = null;
 
 			removeButton.interactable = false;
+			moveObjectButton.interactable = false;
+			rotateObjectButton.interactable = false;
 		}
 	}
 
 	public void removeTargetedObject(){
 		if (lastTargetedObject != null) {
+			Debug.Log ("NormalModeBehaviour, removeTargetedObject");
+
 			Object.Destroy (lastTargetedObject);
+			NetworkIdentity ni = lastTargetedObject.GetComponent<NetworkIdentity> ();
+
+			localMainCamera.GetComponent<LocalPlayerScript> ().CmdDestroyOnServer (ni.netId);
+
 			lastTargetedObject = null;
+
 			removeButton.interactable = false;
+			moveObjectButton.interactable = false;
+			rotateObjectButton.interactable = false;
 		}
 	}
+
+	public GameObject getLastTargetedObject(){
+		return lastTargetedObject;
+	}
+		
 }
